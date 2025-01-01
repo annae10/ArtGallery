@@ -9,12 +9,14 @@ CONFIG += c++20
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    contentloader.cpp \
+    imageloader.cpp \
+    imageloadertask.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
-    contentloader.h \
+    imageloader.h \
+    imageloadertask.h \
     mainwindow.h
 
 FORMS += \

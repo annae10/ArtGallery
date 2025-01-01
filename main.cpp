@@ -15,7 +15,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <sstream>
-#include "contentloader.h"
 #include "ui_mainwindow.h"
 
 #include <QLabel>
@@ -24,6 +23,9 @@
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+
+#include <QNetworkAccessManager>
+#include "imageloader.h"
 
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "libssl.lib")
@@ -97,7 +99,8 @@ int main(int argc, char *argv[])
     QWidget *contentWidget = new QWidget();
     QVBoxLayout *layout = new QVBoxLayout(contentWidget);
 
-    ContentLoader loader(layout);
+    ImageLoader loader(layout);
+
 
     init_openssl();
     SSL_CTX* ctx = SSL_CTX_new(TLS_client_method());
@@ -156,7 +159,6 @@ int main(int argc, char *argv[])
     SSL_write(ssl, request, strlen(request));
 
     char buffer[4096];
-//    std::vector<std::string> headers;
 
     std::string response;
 
@@ -166,14 +168,6 @@ int main(int argc, char *argv[])
         buffer[bytes]=0;
         response += buffer;
 
-        std::istringstream stream(response);
-        std::string line;
-
-//        while (std::getline(stream, line)){
-//            if(line.empty()) break;
-//            headers.push_back(line);
-//        }
-//        response.clear();
     }
 
     SSL_shutdown(ssl);
@@ -181,10 +175,7 @@ int main(int argc, char *argv[])
     closesocket(sock);
     SSL_CTX_free(ctx);
 
-//    for(const auto& header : headers)
-//    {
-//        std::cout<< header << std::endl;
-//    }
+
     std::vector<Token> tokens = tokenize(response);
 
 
@@ -195,7 +186,7 @@ int main(int argc, char *argv[])
         bool check=false;
         bool find_article = false;
         bool find_image = false;
-        bool find_header = false;
+
         int count_articles = 0;
 
         std::string article_link = "https://edition.cnn.com";
@@ -215,8 +206,6 @@ int main(int argc, char *argv[])
 
         if (token.value.substr(0, header_tag.length()) == header_tag)
         {
-//            std::cout << "Type: " << token.type << ", Value: " << token.value << std::endl;
-
             check=true;
             continue;
         }
@@ -225,7 +214,6 @@ int main(int argc, char *argv[])
 
         if (check && token.value.substr(0, tag_article.length()) == tag_article)
         {
-//            std::cout << "Article tag!\n";
             find_article = true;
 
 
@@ -234,7 +222,7 @@ int main(int argc, char *argv[])
 
             for(auto i:token.value)
             {
-                if(i=='\n')count_n++;//std::cout<<"\\n++\n";
+                if(i=='\n')count_n++;
 
                 if(find_article_link && i=='"')
                 {
@@ -298,7 +286,7 @@ int main(int argc, char *argv[])
             QString textStr = QString::fromStdString(text);
 
             if(count_articles%2==1)
-            loader.loadImage(imageUrl,titleStr,textStr);
+            loader.loadImage(imageUrl, textStr);
 
             count_articles++;
         }
